@@ -162,10 +162,15 @@ class Facebook extends AbstractService
         // Facebook gives us a query string ... Oh wait. JSON is too simple, understand ?
         parse_str($responseBody, $data);
 
+        // Yet errors return as json?!
+        $json = json_decode($responseBody, true);
+
         if (null === $data || !is_array($data)) {
             throw new TokenResponseException('Unable to parse response.');
         } elseif (isset($data['error'])) {
             throw new TokenResponseException('Error in retrieving token: "' . $data['error'] . '"');
+        } elseif($json && isset($json['error']['message'])) {
+            throw new TokenResponseException('Error in retrieving token: "' . $json['error']['message'] . '"');
         }
 
         $token = new StdOAuth2Token();
